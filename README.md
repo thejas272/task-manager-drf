@@ -58,7 +58,7 @@ This API uses JWT authentication via `djangorestframework-simplejwt`.
     "email": "Email id passed in request body"
 }
 
-
+```
 
 
 ### Obtain JWT Tokens(login and refresh)
@@ -78,6 +78,9 @@ This API uses JWT authentication via `djangorestframework-simplejwt`.
 }
 
 
+```
+
+
 - `POST /api/auth/refresh/`
 
 ```json
@@ -89,6 +92,7 @@ This API uses JWT authentication via `djangorestframework-simplejwt`.
     "access": "<access_token>"
 }
 
+```
 
 
 ### Using JWT in Requests
@@ -104,6 +108,8 @@ Authorization: Bearer <access_token>
   "description": "Complete Django Task Manager API",
   "status": false
 }
+```
+
 
 Normal users → owner is set automatically
 
