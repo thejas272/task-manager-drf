@@ -62,7 +62,7 @@ This API uses JWT authentication via `djangorestframework-simplejwt`.
 
 
 ### Obtain JWT Tokens(login and refresh)
-
+### Login
 - `POST /api/auth/login/`
 
 ```json
@@ -79,7 +79,7 @@ This API uses JWT authentication via `djangorestframework-simplejwt`.
 }
 
 ```
-
+### Refresh
 
 - `POST /api/auth/refresh/`
 
