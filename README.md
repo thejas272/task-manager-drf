@@ -125,17 +125,17 @@ Admin users → can optionally provide owner
 ```bash
 git clone https://github.com/<your-username>/<repo-name>.git
 cd <repo-name>
-
+```
 ### 2. Create Virtual Environment
 ```bash
 python -m venv venv
 venv\Scripts\activate   # Windows
-
+```
 
 ### 3. Install Dependencies
 ```bash
 pip install -r requirements.txt
-
+```
 
 ### 4. Environment Varibales
 SECRET_KEY=your-secret-key
@@ -146,13 +146,14 @@ ALLOWED_HOSTS=127.0.0.1,localhost
 ### 5. Run Migrations
 ```bash
 python manage.py migrate
-
+```
 
 ### 5. Create Admin Superuser
 ```bash
 python manage.py createsuperuser
-
+```
 
 ### 6. Run server
 ```bash
 python manage.py runserver
+```
