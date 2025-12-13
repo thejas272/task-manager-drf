@@ -35,9 +35,118 @@ This API uses JWT authentication via `djangorestframework-simplejwt`.
 - `PUT /api/tasks/update/<id>/`
 - `DELETE /api/tasks/delete/<id>/`
 
+
+
+
+
+## API Usage Examples
+
+### Register User
+- `POST /api/auth/register/`
+
+```json
+{
+    "username": "thejas272",
+    "password": "A strong password",
+    "email":"A valid email"
+}
+
+
+
+{
+    "username": "thejas272",
+    "email": "Email id passed in request body"
+}
+
+
+
+
+### Obtain JWT Tokens(login and refresh)
+
+- `POST /api/auth/login/`
+
+```json
+{
+    "username": "thejas272",
+    "password": "A strong password"
+}
+
+
+{
+    "refresh": "<refresh_token>",
+    "access": "<access_token>"
+}
+
+
+- `POST /api/auth/refresh/`
+
+```json
+{
+    "refresh": "<refresh_token>"
+}
+
+{
+    "access": "<access_token>"
+}
+
+
+
+### Using JWT in Requests
+
+Authorization: Bearer <access_token>
+
+
+### Creaing A Task
+
+```json
+{
+  "title": "Finish assignment",
+  "description": "Complete Django Task Manager API",
+  "status": false
+}
+
+Normal users → owner is set automatically
+
+Admin users → can optionally provide owner
+
+
+
+
+
 ## Setup Instructions
 
 ### 1. Clone repository
 ```bash
 git clone https://github.com/<your-username>/<repo-name>.git
 cd <repo-name>
+
+### 2. Create Virtual Environment
+```bash
+python -m venv venv
+venv\Scripts\activate   # Windows
+
+
+### 3. Install Dependencies
+```bash
+pip install -r requirements.txt
+
+
+### 4. Environment Varibales
+SECRET_KEY=your-secret-key
+DEBUG=True
+ALLOWED_HOSTS=127.0.0.1,localhost
+
+
+### 5. Run Migrations
+```bash
+python manage.py migrate
+
+
+### 5. Create Admin Superuser
+```bash
+python manage.py createsuperuser
+
+
+### 6. Run server
+```bash
+python manage.py runserver
