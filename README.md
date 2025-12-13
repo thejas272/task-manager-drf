@@ -50,9 +50,9 @@ This API uses JWT authentication via `djangorestframework-simplejwt`.
     "password": "A strong password",
     "email":"A valid email"
 }
-
-
-
+```
+### Response
+```json
 {
     "username": "thejas272",
     "email": "Email id passed in request body"
@@ -70,13 +70,13 @@ This API uses JWT authentication via `djangorestframework-simplejwt`.
     "username": "thejas272",
     "password": "A strong password"
 }
-
-
+```
+### Response
+```json
 {
     "refresh": "<refresh_token>",
     "access": "<access_token>"
 }
-
 
 ```
 
@@ -87,7 +87,9 @@ This API uses JWT authentication via `djangorestframework-simplejwt`.
 {
     "refresh": "<refresh_token>"
 }
-
+```
+### Response
+```json
 {
     "access": "<access_token>"
 }
