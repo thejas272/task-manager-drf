@@ -7,7 +7,16 @@ from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated
 from api.models import TaskModel
 from django.contrib.auth.models import User
+from rest_framework.pagination import PageNumberPagination
+
 # Create your views here.
+
+
+class TaskPagination(PageNumberPagination):
+  page_size = 5
+  page_size_query_param = "page_size"
+  max_page_size = 50
+
 
 
 class RegisterAPIView(APIView):
@@ -82,6 +91,7 @@ class CreateTaskAPIView(APIView):
 
 class ListTaskAPIView(APIView):
   permission_classes = [IsAuthenticated]
+  pagination_class = TaskPagination
 
   def get(self,request):
 
@@ -97,9 +107,16 @@ class ListTaskAPIView(APIView):
                        "data":[]},
                        status=status.HTTP_200_OK
                      )
+    
+    paginator = self.pagination_class()
+    page = paginator.paginate_queryset(tasks, request)
+
+    if page is None:
+      serializer = TaskSerializer(tasks, many=True)
+      return Response(serializer.data)
       
-    serializer = TaskSerializer(tasks,many=True)
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    serializer = TaskSerializer(page, many=True)
+    return paginator.get_paginated_response(serializer.data)
   
 
 
