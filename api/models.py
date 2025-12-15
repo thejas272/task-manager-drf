@@ -1,5 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
+from datetime import timedelta
+from django.utils import timezone
+
 # Create your models here.
 
 
@@ -10,6 +13,7 @@ class TaskModel(models.Model):
   description = models.TextField(null=True, blank=True)
   status      = models.BooleanField(default=False)
 
+  due_date    = models.DateField(null=True, blank=True)
   created_at  = models.DateTimeField(auto_now_add=True)
   updated_at  = models.DateTimeField(auto_now=True) 
 
@@ -17,3 +21,8 @@ class TaskModel(models.Model):
   def __str__(self):
     return f"task - '{self.title}' of user - '{self.owner.username}'"
   
+  def save(self,*args,**kwargs):
+    if not self.due_date:
+      self.due_date = timezone.now().date() + timedelta(days=3)
+
+    return super().save(*args,**kwargs)

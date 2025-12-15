@@ -37,8 +37,25 @@ class TaskSerializer(serializers.ModelSerializer):
 
   class Meta:
     model = TaskModel
-    fields = ['id','title','description','status','owner','created_at','updated_at']
-    read_only_fields = ['id','created_at','updated_at']
+    fields = ['id','title','description','status','owner','due_date','created_at','updated_at']
+    read_only_fields = ['id','owner','created_at','updated_at']
 
 
+  def create(self, validated_data):
+    request = self.context['request']
+
+    if request.user.is_staff:
+      owner_id = self.initial_data.get('owner')
+      if owner_id:
+        try:
+          validated_data['owner'] = User.objects.get(id=owner_id)
+        except User.DoesNotExist:
+          raise serializers.ValidationError({"owner":"User with the ID given do not exist"})
+      else:
+        validated_data['owner'] = request.user
+
+    else:   # when normal user is logged in 
+      validated_data['owner'] = request.user
+
+    return super().create(validated_data)
 

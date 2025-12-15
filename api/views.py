@@ -1,13 +1,14 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework import serializers
 from .serializers import RegisterSerializer,TaskSerializer
 from rest_framework_simplejwt.tokens import RefreshToken,TokenError
 from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated
 from api.models import TaskModel
-from django.contrib.auth.models import User
 from rest_framework.pagination import PageNumberPagination
+from django.utils import timezone
 
 # Create your views here.
 
@@ -71,15 +72,8 @@ class CreateTaskAPIView(APIView):
   permission_classes = [IsAuthenticated]
 
   def post(self,request):
-    data = request.data.copy()
-    
-    if not request.user.is_staff:
-      data['owner'] = request.user.id
-    else:
-      if 'owner' not in data:
-        data['owner'] = request.user.id
 
-    serializer = TaskSerializer(data=data)
+    serializer = TaskSerializer(data=request.data, context={'request':request})
 
     if serializer.is_valid():
       serializer.save()
@@ -108,6 +102,35 @@ class ListTaskAPIView(APIView):
                        status=status.HTTP_200_OK
                      )
     
+    task_status = request.query_params.get('status')
+    if task_status is not None:
+      if task_status.lower() == "true":
+        tasks = tasks.filter(status=True)
+
+      elif task_status.lower() == "false":
+        tasks = tasks.filter(status=False)
+
+
+    owner = request.query_params.get('owner')
+    if owner is not None:
+      if request.user.is_staff:
+        tasks = tasks.filter(owner_id=owner)
+      else:
+        return Response({"message":"Request not allowed"}, status=status.HTTP_403_FORBIDDEN)
+      
+
+    due = request.query_params.get('due_date')
+    if due is not None:
+      date_field = serializers.DateField()
+   
+      due_date = date_field.to_internal_value(due)
+      try:
+        tasks = tasks.filter(due_date=due_date)
+      except serializers.ValidationError:
+        return Response({"due_date":"Invalid date formate. Use YYYY-MM-DD"}, status=status.HTTP_400_BAD_REQUEST)
+      
+
+      
     paginator = self.pagination_class()
     page = paginator.paginate_queryset(tasks, request)
 
