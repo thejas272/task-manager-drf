@@ -41,6 +41,36 @@ class TaskSerializer(serializers.ModelSerializer):
     read_only_fields = ['id','owner','created_at','updated_at']
 
 
+  def validate(self, attrs):
+    request = self.context['request']
+
+    title  = attrs.get("title")
+
+    if request.user.is_staff:
+      owner_id = self.initial_data.get('owner')
+      if owner_id:
+        try:
+          owner = User.objects.get(id=owner_id)
+        except User.DoesNotExist:
+          raise serializers.ValidationError({"owner":"User with this ID does not exist"})
+      else:
+        owner = request.user
+
+    else:
+      owner = request.user
+
+    task_query_set = TaskModel.objects.filter(title=title,owner=owner)
+
+    if self.instance:   # in case of updation
+      task_query_set = task_query_set.exclude(id=self.instance.id)
+    
+    if task_query_set.exists():
+      raise serializers.ValidationError({"title":"A task with the same title already exists"})
+
+    return attrs
+
+
+
   def create(self, validated_data):
     request = self.context['request']
 
