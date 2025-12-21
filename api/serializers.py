@@ -41,25 +41,28 @@ class TaskSerializer(serializers.ModelSerializer):
     read_only_fields = ['id','owner','created_at','updated_at']
 
 
-  def validate(self, attrs):
+  def _get_owner(self):  # helper method to configure owner of a task 
     request = self.context['request']
-
-    title  = attrs.get("title")
 
     if request.user.is_staff:
       owner_id = self.initial_data.get('owner')
       if owner_id:
         try:
-          owner = User.objects.get(id=owner_id)
+          return User.objects.filter(id=owner_id)
         except User.DoesNotExist:
           raise serializers.ValidationError({"owner":"User with this ID does not exist"})
       else:
-        owner = request.user
-
+        return request.user
     else:
-      owner = request.user
+      return request.user
 
-    task_query_set = TaskModel.objects.filter(title=title,owner=owner)
+
+
+  def validate(self, attrs):
+    title  = attrs.get("title")
+    owner = self._get_owner()
+
+    task_query_set = TaskModel.objects.filter(title=title,owner=owner)   # checking for duplication attempt of a task
 
     if self.instance:   # in case of updation
       task_query_set = task_query_set.exclude(id=self.instance.id)
@@ -74,18 +77,22 @@ class TaskSerializer(serializers.ModelSerializer):
   def create(self, validated_data):
     request = self.context['request']
 
-    if request.user.is_staff:
-      owner_id = self.initial_data.get('owner')
-      if owner_id:
-        try:
-          validated_data['owner'] = User.objects.get(id=owner_id)
-        except User.DoesNotExist:
-          raise serializers.ValidationError({"owner":"User with the ID given do not exist"})
-      else:
-        validated_data['owner'] = request.user
-
-    else:   # when normal user is logged in 
-      validated_data['owner'] = request.user
-
+    validated_data['owner'] = self._get_owner()
     return super().create(validated_data)
+
+
+  def update(self,instance,validated_data):
+    request = self.context['request']
+
+    if not request:
+      raise serializers.ValidationError("Request context is required")
+    
+    if request.user.is_staff and 'owner' in self.initial_data:
+      validated_data['owner'] = self._get_owner()
+
+    for attr,value in validated_data.items():
+      setattr(instance, attr, value)
+    
+    instance.save()
+    return instance
 

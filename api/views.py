@@ -127,7 +127,7 @@ class ListTaskAPIView(APIView):
       try:
         tasks = tasks.filter(due_date=due_date)
       except serializers.ValidationError:
-        return Response({"due_date":"Invalid date formate. Use YYYY-MM-DD"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"due_date":"Invalid date format. Use YYYY-MM-DD"}, status=status.HTTP_400_BAD_REQUEST)
       
 
       
@@ -177,11 +177,9 @@ class UpdateTaskAPIView(APIView):
 
       if task.owner_id != request.user.id:
         return Response({"message":"Illegal access"},status=status.HTTP_403_FORBIDDEN)
-      
-      data['owner'] = task.owner_id
     
 
-    serializer = TaskSerializer(task, data=data, partial=True)
+    serializer = TaskSerializer(task, data=data, partial=True, context={"request":request})
     if serializer.is_valid():
       serializer.save()
       return  Response(serializer.data, status=status.HTTP_200_OK)
