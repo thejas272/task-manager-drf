@@ -2,13 +2,15 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import serializers
-from .serializers import RegisterSerializer,TaskSerializer
+from .serializers import RegisterSerializer,LoginSerializer, TaskSerializer
 from rest_framework_simplejwt.tokens import RefreshToken,TokenError
 from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated
 from api.models import TaskModel
 from rest_framework.pagination import PageNumberPagination
 from django.utils import timezone
+from rest_framework.permissions import AllowAny
+from rest_framework.generics import GenericAPIView
 
 # Create your views here.
 
@@ -20,10 +22,13 @@ class TaskPagination(PageNumberPagination):
 
 
 
-class RegisterAPIView(APIView):
-  
+class RegisterAPIView(GenericAPIView):
+
+  permission_classes = [AllowAny]
+  serializer_class = RegisterSerializer
+
   def post(self,request):
-    serializer = RegisterSerializer(data=request.data)
+    serializer = self.serializer_class(data=request.data)
 
     if serializer.is_valid():
       serializer.save()
@@ -32,11 +37,19 @@ class RegisterAPIView(APIView):
     return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
   
 
-class LoginAPIView(APIView):
+class LoginAPIView(GenericAPIView):
+
+  permission_classes = [AllowAny]
+  serializer_class = LoginSerializer
 
   def post(self,request):
-    username = request.data.get('username')
-    password = request.data.get('password')
+
+    serializer = self.serializer_class(data=request.data)
+    if not serializer.is_valid():
+      return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    username = serializer.validated_data.get('username')
+    password = serializer.validated_data.get('password')
 
     user = authenticate(username=username,password=password)
 
@@ -51,8 +64,10 @@ class LoginAPIView(APIView):
                    )
 
 
-class RefreshTokenAPIView(APIView):
+class RefreshTokenAPIView(GenericAPIView):
   
+  permission_classes = [AllowAny]
+
   def post(self,request):
     refresh_token = request.data.get('refresh')
 
@@ -68,12 +83,14 @@ class RefreshTokenAPIView(APIView):
     
 
 
-class CreateTaskAPIView(APIView):
+class CreateTaskAPIView(GenericAPIView):
+
   permission_classes = [IsAuthenticated]
+  serializer_class = TaskSerializer 
 
   def post(self,request):
 
-    serializer = TaskSerializer(data=request.data, context={'request':request})
+    serializer = self.serializer_class(data=request.data, context={'request':request})
 
     if serializer.is_valid():
       serializer.save()
@@ -83,9 +100,11 @@ class CreateTaskAPIView(APIView):
 
 
 
-class ListTaskAPIView(APIView):
+class ListTaskAPIView(GenericAPIView):
+
   permission_classes = [IsAuthenticated]
   pagination_class = TaskPagination
+  serializer_class = TaskSerializer
 
   def get(self,request):
 
@@ -135,16 +154,18 @@ class ListTaskAPIView(APIView):
     page = paginator.paginate_queryset(tasks, request)
 
     if page is None:
-      serializer = TaskSerializer(tasks, many=True)
+      serializer = self.serializer_class(tasks, many=True)
       return Response(serializer.data)
       
-    serializer = TaskSerializer(page, many=True)
+    serializer = self.serializer_class(page, many=True)
     return paginator.get_paginated_response(serializer.data)
   
 
 
-class RetrieveTaskAPIView(APIView):
+class RetrieveTaskAPIView(GenericAPIView):
+
   permission_classes = [IsAuthenticated]
+  serializer_class = TaskSerializer
 
   def get(self,request,id):
     task = TaskModel.objects.filter(id=id).first()
@@ -157,13 +178,15 @@ class RetrieveTaskAPIView(APIView):
         return Response({"message":"Illegal access"},status=status.HTTP_403_FORBIDDEN)
       
     
-    serializer = TaskSerializer(task)
+    serializer = self.serializer_class(task)
     return Response(serializer.data,status=status.HTTP_200_OK)
 
 
 
-class UpdateTaskAPIView(APIView):
+class UpdateTaskAPIView(GenericAPIView):
+
   permission_classes = [IsAuthenticated]
+  serializer_class = TaskSerializer
 
   def put(self,request,id):
     data = request.data.copy()
@@ -179,7 +202,7 @@ class UpdateTaskAPIView(APIView):
         return Response({"message":"Illegal access"},status=status.HTTP_403_FORBIDDEN)
     
 
-    serializer = TaskSerializer(task, data=data, partial=True, context={"request":request})
+    serializer = self.serializer_class(task, data=data, partial=True, context={"request":request})
     if serializer.is_valid():
       serializer.save()
       return  Response(serializer.data, status=status.HTTP_200_OK)
@@ -191,8 +214,10 @@ class UpdateTaskAPIView(APIView):
 
 
 
-class DeleteTaskAPIView(APIView):
+class DeleteTaskAPIView(GenericAPIView):
+
   permission_classes = [IsAuthenticated]
+  serializer_class = TaskSerializer
 
   def delete(self,request,id):
     task = TaskModel.objects.filter(id=id).first()

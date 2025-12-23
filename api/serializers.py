@@ -30,15 +30,23 @@ class RegisterSerializer(serializers.ModelSerializer):
                                     password=validated_data['password']
                                   )
     return user
-    
+
+
+class LoginSerializer(serializers.ModelSerializer):
+  username = serializers.CharField()
+  password = serializers.CharField(write_only=True)
+
+  class Meta:
+    model = User
+    fields = ['username','password']
 
 
 class TaskSerializer(serializers.ModelSerializer):
 
   class Meta:
     model = TaskModel
-    fields = ['id','title','description','status','owner','due_date','created_at','updated_at']
-    read_only_fields = ['id','owner','created_at','updated_at']
+    fields = ['title','description','status','owner','due_date','created_at']
+    read_only_fields = ['owner','created_at','updated_at']
 
 
   def _get_owner(self):  # helper method to configure owner of a task 
