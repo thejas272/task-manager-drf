@@ -5,6 +5,7 @@ urlpatterns = [
     # auth urls
     path('auth/register/', views.RegisterAPIView.as_view(),     name="register"),
     path('auth/login/',    views.LoginAPIView.as_view(),        name="login"),
+    path('auth/logout/',   views.LogoutAPIView.as_view(),       name="logout"),
     path('auth/refresh/',  views.RefreshTokenAPIView.as_view(), name="refresh"),
 
 

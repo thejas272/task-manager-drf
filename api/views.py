@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import serializers
-from .serializers import RegisterSerializer,LoginSerializer, TaskSerializer
+from .serializers import RegisterSerializer,LoginSerializer, TaskSerializer, LogoutSerializer
 from rest_framework_simplejwt.tokens import RefreshToken,TokenError
 from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated
@@ -63,6 +63,23 @@ class LoginAPIView(GenericAPIView):
                      'access':str(refresh.access_token)
                     },status=status.HTTP_200_OK
                    )
+
+
+
+class LogoutAPIView(GenericAPIView):
+  permission_classes = [AllowAny]
+  serializer_class = LogoutSerializer
+
+  def post(self,request):
+    serializer = self.serializer_class(data=request.data)
+    
+    if serializer.is_valid():
+      serializer.save()
+      return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
 
 
 class RefreshTokenAPIView(GenericAPIView):

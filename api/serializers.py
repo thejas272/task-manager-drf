@@ -2,7 +2,7 @@ from rest_framework import serializers
 from api.models import User
 from api.models import TaskModel
 from django.db import IntegrityError
-
+from rest_framework_simplejwt.tokens import RefreshToken,TokenError
 
 class RegisterSerializer(serializers.ModelSerializer):
 
@@ -43,6 +43,28 @@ class LoginSerializer(serializers.ModelSerializer):
   class Meta:
     model = User
     fields = ['username','password']
+
+class LogoutSerializer(serializers.Serializer):
+  refresh = serializers.CharField(required=True)
+
+  def validate(self, attrs):
+    token = attrs.get('refresh')
+
+    try:
+      self.token = RefreshToken(token)
+    except TokenError:
+      raise serializers.ValidationError("Invalid or expired refresh token.")
+    
+
+    if self.token.token_type != "refresh":
+      raise serializers.ValidationError("Invalid token type.")
+
+    return attrs
+  
+  def save(self, **kwargs):
+    self.token.blacklist()
+
+
 
 
 class TaskSerializer(serializers.ModelSerializer):
