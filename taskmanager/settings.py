@@ -32,6 +32,10 @@ DEBUG = os.getenv("DEBUG") == "True"
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
 
 
+AUTH_USER_MODEL = "api.User"
+
+
+
 # Application definition
 
 INSTALLED_APPS = [

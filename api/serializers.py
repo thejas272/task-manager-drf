@@ -1,7 +1,7 @@
 from rest_framework import serializers
-from django.contrib.auth.models import User
+from api.models import User
 from api.models import TaskModel
-
+from django.db import IntegrityError
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -25,10 +25,14 @@ class RegisterSerializer(serializers.ModelSerializer):
     return value
 
   def create(self, validated_data):
-    user = User.objects.create_user(username=validated_data['username'],
-                                    email=validated_data['email'],
-                                    password=validated_data['password']
-                                  )
+    try:
+      user = User.objects.create_user(username=validated_data['username'],
+                                      email=validated_data['email'],
+                                      password=validated_data['password']
+                                     )
+    except IntegrityError:
+      raise serializers.ValidationError({"detail":"Username or email already exists"})
+    
     return user
 
 
@@ -86,7 +90,11 @@ class TaskSerializer(serializers.ModelSerializer):
     request = self.context['request']
 
     validated_data['owner'] = self._get_owner()
-    return super().create(validated_data)
+    try:
+      return super().create(validated_data)
+    except IntegrityError:
+      raise serializers.ValidationError({"detail":"You already have a task with this title"})
+
 
 
   def update(self,instance,validated_data):
@@ -101,6 +109,8 @@ class TaskSerializer(serializers.ModelSerializer):
     for attr,value in validated_data.items():
       setattr(instance, attr, value)
     
-    instance.save()
-    return instance
-
+    try:  
+      instance.save()
+      return instance
+    except IntegrityError:
+      raise serializers.ValidationError({"detail":"You already have a task with this title"})

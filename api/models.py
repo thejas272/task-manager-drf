@@ -1,9 +1,13 @@
 from django.db import models
-from django.contrib.auth.models import User
+
 from datetime import timedelta
 from django.utils import timezone
+from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
+
+class User(AbstractUser):
+  email = models.EmailField(unique=True)
 
 
 class TaskModel(models.Model):
@@ -16,6 +20,13 @@ class TaskModel(models.Model):
   due_date    = models.DateField(null=True, blank=True)
   created_at  = models.DateTimeField(auto_now_add=True)
   updated_at  = models.DateTimeField(auto_now=True) 
+
+
+  class Meta:
+    constraints = [models.UniqueConstraint(fields=['owner','title'],
+                                           name='unique_task_per_user'
+                                          )
+                  ]
 
 
   def __str__(self):

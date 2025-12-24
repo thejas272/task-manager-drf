@@ -12,6 +12,7 @@ from django.utils import timezone
 from rest_framework.permissions import AllowAny
 from rest_framework.generics import GenericAPIView
 
+
 # Create your views here.
 
 
@@ -33,7 +34,7 @@ class RegisterAPIView(GenericAPIView):
     if serializer.is_valid():
       serializer.save()
       return Response(serializer.data,status=status.HTTP_201_CREATED)
-    
+  
     return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
   
 
