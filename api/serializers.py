@@ -60,7 +60,7 @@ class TaskSerializer(serializers.ModelSerializer):
       owner_id = self.initial_data.get('owner')
       if owner_id:
         try:
-          return User.objects.filter(id=owner_id)
+          return User.objects.get(id=owner_id)
         except User.DoesNotExist:
           raise serializers.ValidationError({"owner":"User with this ID does not exist"})
       else:
